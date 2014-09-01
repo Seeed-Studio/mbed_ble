@@ -22,7 +22,20 @@ or if Ubuntu is used, run `sudo apt-get install srecord`. Then run:
 make merge
 ```
 
+The repo is licensed under [The Apache License](http://www.apache.org/licenses/LICENSE-2.0).
+
+Contributing to this software is warmly welcomed. You can do this basically by<br>
+[forking](https://help.github.com/articles/fork-a-repo), committing modifications and then [pulling requests](https://help.github.com/articles/using-pull-requests) (follow the links above<br>
+for operating guide). Adding change log and your contact into file header is encouraged.<br>
+Thanks for your contribution.
+
+Seeedstudio is an open hardware facilitation company based in Shenzhen, China. <br>
+Benefiting from local manufacture power and convenient global logistic system, <br>
+we integrate resources to serve new era of innovation. Seeedstudio also works with <br>
+global distributors and partners to push open hardware movement.<br>
 
 
 [gcc-arm-embedded toolchain]: https://launchpad.net/gcc-arm-embedded
 [BLE Micro]: http://www.seeedstudio.com/depot/Seeed-Micro-BLE-Module-w-CortexM0-Based-nRF51822-SoC-p-1975.html?cPath=19_21
+
+[![Analytics](https://ga-beacon.appspot.com/UA-46589105-3/mbed_ble)](https://github.com/igrigorik/ga-beacon)
