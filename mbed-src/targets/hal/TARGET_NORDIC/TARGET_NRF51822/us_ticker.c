@@ -62,14 +62,10 @@ void TIMER1_IRQHandler(void){
 }
 #endif 
 void us_ticker_init(void){
-    if (us_ticker_inited && US_TICKER_TIMER->POWER){
+    if (us_ticker_inited){
         return;
     }
-    
     us_ticker_inited = 1;
-    
-    US_TICKER_TIMER->POWER = 0;
-    US_TICKER_TIMER->POWER = 1;
     
     US_TICKER_TIMER->MODE = TIMER_MODE_MODE_Timer;
     
@@ -86,7 +82,7 @@ void us_ticker_init(void){
 }
 
 uint32_t us_ticker_read(){
-    if (!us_ticker_inited || US_TICKER_TIMER->POWER==0){
+    if (!us_ticker_inited){
         us_ticker_init();
     }
     
@@ -101,7 +97,7 @@ uint32_t us_ticker_read(){
 }
 
 void us_ticker_set_interrupt(unsigned int timestamp){
-    if (!us_ticker_inited || US_TICKER_TIMER->POWER==0)
+    if (!us_ticker_inited)
     {
         us_ticker_init();
     }	
