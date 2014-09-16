@@ -12,6 +12,7 @@ SoftDevice V6 and OTA (Over-The-Air) bootloader are pre-flashed on BLE Micro. So
 git clone https://github.com/Seeed-Studio/mbed_ble.git
 cd mbed_ble
 git checkout -b softdevice_v6 origin/softdevice_v6
+cd demos/color_pixels
 make
 ```
 
