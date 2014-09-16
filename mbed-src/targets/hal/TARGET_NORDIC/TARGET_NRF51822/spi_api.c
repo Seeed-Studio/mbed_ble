@@ -20,31 +20,6 @@
 #include "pinmap.h"
 #include "error.h"
 
-static const PinMap PinMap_SPI_SCLK[] = {
-    {SPI_PSELSCK0 , SPI_0, 0x01},
-    {SPI_PSELSCK1, SPI_1, 0x02},
-    {SPIS_PSELSCK, SPIS, 0x03},
-    {NC   , NC   , 0}
-};
-
-static const PinMap PinMap_SPI_MOSI[] = {
-    {SPI_PSELMOSI0 , SPI_0, 0x01},
-    {SPI_PSELMOSI1, SPI_1, 0x02},
-    {SPIS_PSELMOSI, SPIS, 0x03},
-    {NC   , NC   , 0}
-};
-
-static const PinMap PinMap_SPI_MISO[] = {
-    {SPI_PSELMISO0 , SPI_0, 0x01},
-    {SPI_PSELMISO1, SPI_1, 0x02},
-    {SPIS_PSELMISO, SPIS, 0x03},
-    {NC   , NC   , 0}
-};
-
-static const PinMap PinMap_SPI_SSEL[] = {
-    {SPIS_PSELSS, SPIS, 0x03},
-    {NC   , NC   , 0}
-};
 //   {SPI_PSELSS0 , SPI_0, 0x01},
 #define SPIS_MESSAGE_SIZE 1
 volatile uint8_t m_tx_buf[SPIS_MESSAGE_SIZE] = {0};
@@ -52,14 +27,7 @@ volatile uint8_t m_rx_buf[SPIS_MESSAGE_SIZE] = {0};
 
 
 void spi_init(spi_t *obj, PinName mosi, PinName miso, PinName sclk, PinName ssel) {
-    // determine the SPI to use
-    SPIName spi_mosi = (SPIName)pinmap_peripheral(mosi, PinMap_SPI_MOSI);
-    SPIName spi_miso = (SPIName)pinmap_peripheral(miso, PinMap_SPI_MISO);
-    SPIName spi_sclk = (SPIName)pinmap_peripheral(sclk, PinMap_SPI_SCLK);
-    SPIName spi_ssel = (SPIName)pinmap_peripheral(ssel, PinMap_SPI_SSEL);
-    SPIName spi_data = (SPIName)pinmap_merge(spi_mosi, spi_miso);
-    SPIName spi_cntl = (SPIName)pinmap_merge(spi_sclk, spi_ssel);
-    SPIName spi = (SPIName)pinmap_merge(spi_data, spi_cntl);
+    SPIName spi = (SPIName)SPI_1;
     //SPIName
     if(ssel==NC){
         obj->spi = (NRF_SPI_Type*)spi;
