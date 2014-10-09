@@ -15,9 +15,6 @@
 #include "nrf_sdm.h"
 #include "app_error.h"
 
-#define IRQ_ENABLED             0x01                                            /**< Field identifying if an interrupt is enabled. */
-#define MAX_NUMBER_INTERRUPTS   32                                              /**< Maximum number of interrupts available. */
-
 static void                     dfu_app_reset_prepare(void);                    /**< Forward declare of default reset handler. */
 static dfu_app_reset_prepare_t  m_reset_prepare = dfu_app_reset_prepare;        /**< Callback function to application to prepare for system reset. Allows application to cleanup of service and memory prior to reset. */
 
@@ -32,27 +29,6 @@ static void dfu_app_reset_prepare(void)
 }
 
 
-/**@brief Function for disabling all interrupts before jumping from bootloader to application.
- */
-static void interrupts_disable(void)
-{
-    uint32_t interrupt_setting_mask;
-    uint32_t irq = 0; // We start from first interrupt, i.e. interrupt 0.
-
-    // Fetch the current interrupt settings.
-    interrupt_setting_mask = NVIC->ISER[0];
-
-    for (; irq < MAX_NUMBER_INTERRUPTS; irq++)
-    {
-        if (interrupt_setting_mask & (IRQ_ENABLED << irq))
-        {
-            // The interrupt was enabled, and hence disable it.
-            NVIC_DisableIRQ((IRQn_Type)irq);
-        }
-    }
-}
-
-
 /**@brief Function for preparing the reset, disabling SoftDevice and jump to the bootloader.
  */
 void bootloader_start(void)
@@ -62,15 +38,7 @@ void bootloader_start(void)
     uint32_t err_code = sd_power_gpregret_set(BOOTLOADER_DFU_START);
     APP_ERROR_CHECK(err_code);
 
-    err_code = sd_softdevice_disable();
-    APP_ERROR_CHECK(err_code);
-
-    interrupts_disable();
-
-    err_code = sd_softdevice_vector_table_base_set(NRF_UICR->BOOTLOADERADDR);
-    APP_ERROR_CHECK(err_code);
-
-    bootloader_util_app_start(NRF_UICR->BOOTLOADERADDR);
+    NVIC_SystemReset();
 }
 
 
