@@ -53,7 +53,17 @@
             __ASM (  \
                     " NOP\n\t"  \
                 );  \
-            NRF_GPIO->OUTCLR = (mask)
+            NRF_GPIO->OUTCLR = (mask);  \
+            __ASM ( \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                )
 #else
 // Generate a high level pulse (0.94us) of WS2812B's 0 code (0.9us +- 0.15us)
 #define COLOR_PIXELS_ONE_HIGH(mask)     \
@@ -73,7 +83,20 @@
 // Generate a high level pulse (0.44us) of WS2812B's 0 code (0.35us +- 0.15us)
 #define COLOR_PIXELS_ZERO_HIGH(mask)    \
             NRF_GPIO->OUTSET = (mask);  \
-            NRF_GPIO->OUTCLR = (mask)
+            __ASM (  \
+                    " NOP\n\t"  \
+                );  \
+            NRF_GPIO->OUTCLR = (mask);  \
+            __ASM ( \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                    " NOP\n\t" \
+                )
 #endif
 
 #if defined ( __CC_ARM   )

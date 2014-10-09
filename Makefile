@@ -34,7 +34,7 @@ LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys
 ifeq ($(DEBUG), 1)
   CC_FLAGS += -DDEBUG -O0
 else
-  CC_FLAGS += -DNDEBUG -Os
+  CC_FLAGS += -DNDEBUG -Ofast
 endif
 
 all: $(PROJECT).hex
