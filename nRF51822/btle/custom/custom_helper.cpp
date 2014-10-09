@@ -23,30 +23,26 @@
  * structures involved in maintaining a local cache of 128-bit UUIDs.
  */
 typedef struct {
-    LongUUID_t uuid;
-    uint8_t    type;
+    LongUUIDBytes_t uuid;
+    uint8_t         type;
 } converted_uuid_table_entry_t;
-static const unsigned UUID_TABLE_MAX_ENTRIES = 8; /* This is the maximum number
-                                    * of 128-bit UUIDs with distinct bases that
-                                    * we expect to be in use; increase this
-                                    * limit if needed. */
+static const unsigned UUID_TABLE_MAX_ENTRIES = 8; /* This is the maximum number of 128-bit UUIDs with distinct bases that
+                                                   * we expect to be in use; increase this limit if needed. */
 static unsigned uuidTableEntries = 0; /* current usage of the table */
 converted_uuid_table_entry_t convertedUUIDTable[UUID_TABLE_MAX_ENTRIES];
 
 /**
  * lookup the cache of previously converted 128-bit UUIDs to find a type value.
- * @param  uuid          long UUID
+ * @param  uuid          base 128-bit UUID
  * @param  recoveredType the type field of the 3-byte nRF's uuid.
  * @return               true if a match is found.
  */
 static bool
-lookupConvertedUUIDTable(const LongUUID_t uuid, uint8_t *recoveredType)
+lookupConvertedUUIDTable(const LongUUIDBytes_t uuid, uint8_t *recoveredType)
 {
     unsigned i;
     for (i = 0; i < uuidTableEntries; i++) {
-        if (memcmp(convertedUUIDTable[i].uuid,
-                   uuid,
-                   LENGTH_OF_LONG_UUID) == 0) {
+        if (memcmp(convertedUUIDTable[i].uuid, uuid, LENGTH_OF_LONG_UUID) == 0) {
             *recoveredType = convertedUUIDTable[i].type;
             return true;
         }
@@ -56,11 +52,10 @@ lookupConvertedUUIDTable(const LongUUID_t uuid, uint8_t *recoveredType)
 }
 
 static void
-addToConvertedUUIDTable(const LongUUID_t uuid, uint8_t type)
+addToConvertedUUIDTable(const LongUUIDBytes_t uuid, uint8_t type)
 {
     if (uuidTableEntries == UUID_TABLE_MAX_ENTRIES) {
-        return; /* recovery needed; or at least the user should be
-                 * warned about this fact.*/
+        return; /* recovery needed; or at least the user should be warned about this fact.*/
     }
 
     memcpy(convertedUUIDTable[uuidTableEntries].uuid, uuid,LENGTH_OF_LONG_UUID);
@@ -157,7 +152,7 @@ uint8_t custom_add_uuid_base(uint8_t const *const p_uuid_base)
 error_t custom_decode_uuid_base(uint8_t const *const p_uuid_base,
                                 ble_uuid_t          *p_uuid)
 {
-    LongUUID_t uuid_base_le;
+    LongUUIDBytes_t uuid_base_le;
 
     /* Reverse the bytes since ble_uuid128_t is LSB */
     for (uint8_t i = 0; i<16; i++) {
@@ -242,6 +237,56 @@ error_t custom_add_in_characteristic(uint16_t    service_handle,
                                                     &char_md,
                                                     &attr_char_value,
                                                     p_char_handle));
+
+    return ERROR_NONE;
+}
+
+
+
+/**************************************************************************/
+/*!
+    @brief      Adds a new descriptor to the custom service, assigning
+                value, a UUID add-on value, etc.
+
+    @param[in]  char_handle
+    @param[in]  p_uuid            The 16-bit value to add to the base UUID
+                                  for this descriptor (normally >1
+                                  since 1 is typically used by the primary
+                                  service).
+    @param[in]  max_length        The maximum length of this descriptor
+
+    @returns
+    @retval     ERROR_NONE        Everything executed normally
+*/
+/**************************************************************************/
+error_t custom_add_in_descriptor(uint16_t    char_handle,
+                                             ble_uuid_t *p_uuid,
+                                             uint8_t    *p_data,
+                                             uint16_t    min_length,
+                                             uint16_t    max_length,
+                                             uint16_t   *p_desc_handle)
+{
+    /* Descriptor metadata */
+    ble_gatts_attr_md_t   desc_md = {0};
+
+    desc_md.vloc = BLE_GATTS_VLOC_STACK;
+    desc_md.vlen = (min_length == max_length) ? 0 : 1;
+
+    /* Make it readable and writable */
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&desc_md.read_perm);
+    BLE_GAP_CONN_SEC_MODE_SET_OPEN(&desc_md.write_perm);
+
+    ble_gatts_attr_t attr_desc = {0};
+
+    attr_desc.p_uuid    = p_uuid;
+    attr_desc.p_attr_md = &desc_md;
+    attr_desc.init_len  = min_length;
+    attr_desc.max_len   = max_length;
+    attr_desc.p_value   = p_data;
+
+    ASSERT_STATUS ( sd_ble_gatts_descriptor_add(char_handle,
+                                                &attr_desc,
+                                                p_desc_handle));
 
     return ERROR_NONE;
 }

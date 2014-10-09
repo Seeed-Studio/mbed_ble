@@ -62,6 +62,8 @@ extern "C" {
 #define APP_TIMER_USER_SIZE          8                          /**< Size of app_timer.timer_user_t (only for use inside APP_TIMER_BUF_SIZE()). */
 #define APP_TIMER_INT_LEVELS         3                          /**< Number of interrupt levels from where timer operations may be initiated (only for use inside APP_TIMER_BUF_SIZE()). */
 
+#define MAX_RTC_COUNTER_VAL     0x00FFFFFF                                  /**< Maximum value of the RTC counter. */
+
 /**@brief Compute number of bytes required to hold the application timer data structures.
  *
  * @param[in]  MAX_TIMERS      Maximum number of timers that can be created at any given time.
@@ -89,9 +91,9 @@ extern "C" {
  *
  * @param[in]  MS          Milliseconds.
  * @param[in]  PRESCALER   Value of the RTC1 PRESCALER register (must be the same value that was
- *                         passed to APP_TIMER_INIT()).
- *
- * @note   When using this macro, it is the responsibility of the developer to ensure that the
+ *                         passed to APP_TIMER_INIT()). 
+ * 
+ * @note   When using this macro, it is the responsibility of the developer to ensure that the 
  *         values provided as input result in an output value that is supported by the
  *         @ref app_timer_start function. For example, when the ticks for 1 ms is needed, the
  *         maximum possible value of PRESCALER must be 6, when @ref APP_TIMER_CLOCK_FREQ is 32768.
@@ -105,6 +107,8 @@ extern "C" {
 
 /**@brief Timer id type. */
 typedef uint32_t app_timer_id_t;
+
+#define TIMER_NULL                  ((app_timer_id_t)(0 - 1))                   /**< Invalid timer id. */
 
 /**@brief Application timeout handler type. */
 typedef void (*app_timer_timeout_handler_t)(void * p_context);
@@ -126,11 +130,11 @@ typedef enum
  *          making sure that the buffer is correctly aligned. It will also connect the timer module
  *          to the scheduler (if specified).
  *
- * @note    This module assumes that the LFCLK is already running. If it isn't, the module will
- *          be non-functional, since the RTC will not run. If you don't use a softdevice, you'll
- *          have to start the LFCLK manually. See the rtc_example's \ref lfclk_config() function
- *          for an example of how to do this. If you use a softdevice, the LFCLK is started on
- *          softdevice init.
+ * @note    This module assumes that the LFCLK is already running. If it isn't, the module will 
+ *          be non-functional, since the RTC will not run. If you don't use a softdevice, you'll 
+ *          have to start the LFCLK manually. See the rtc_example's \ref lfclk_config() function 
+ *          for an example of how to do this. If you use a softdevice, the LFCLK is started on 
+ *          softdevice init. 
  *
  *
  * @param[in]  PRESCALER        Value of the RTC1 PRESCALER register. This will decide the
@@ -182,7 +186,7 @@ typedef enum
  * @retval     NRF_ERROR_INVALID_PARAM   Invalid parameter (buffer not aligned to a 4 byte
  *                                       boundary or NULL).
  */
-uint32_t app_timer_init(uint32_t                      prescaler,
+uint32_t app_timer_init(uint32_t                      prescaler, 
                         uint8_t                       max_timers,
                         uint8_t                       op_queues_size,
                         void *                        p_buffer,
@@ -249,13 +253,14 @@ uint32_t app_timer_stop(app_timer_id_t timer_id);
  */
 uint32_t app_timer_stop_all(void);
 
-/**@brief Function for returning the current value of the RTC1 counter.
+/**@brief Function for returning the current value of the RTC1 counter. The
+ * value includes overflow bits to extend the range to 64-bits.
  *
  * @param[out] p_ticks   Current value of the RTC1 counter.
  *
  * @retval     NRF_SUCCESS   Counter was successfully read.
  */
-uint32_t app_timer_cnt_get(uint32_t * p_ticks);
+uint32_t app_timer_cnt_get(uint64_t * p_ticks);
 
 /**@brief Function for computing the difference between two RTC1 counter values.
  *
@@ -282,7 +287,7 @@ typedef struct
 static __INLINE void app_timer_evt_get(void * p_event_data, uint16_t event_size)
 {
     app_timer_event_t * p_timer_event = (app_timer_event_t *)p_event_data;
-
+    
     APP_ERROR_CHECK_BOOL(event_size == sizeof(app_timer_event_t));
     p_timer_event->timeout_handler(p_timer_event->p_context);
 }
@@ -294,7 +299,7 @@ static __INLINE uint32_t app_timer_evt_schedule(app_timer_timeout_handler_t time
 
     timer_event.timeout_handler = timeout_handler;
     timer_event.p_context       = p_context;
-
+    
     return app_sched_event_put(&timer_event, sizeof(timer_event), app_timer_evt_get);
 }
 /**@endcond */

@@ -27,7 +27,7 @@
     \brief  GATT characteristic
 */
 /**************************************************************************/
-class GattCharacteristic : public GattAttribute
+class GattCharacteristic
 {
 public:
     enum {
@@ -297,7 +297,7 @@ public:
         uint16_t gatt_nsdesc;    /**< Namespace description from Bluetooth Assigned Numbers, normally '0', see @ref BLE_GATT_CPF_NAMESPACES. */
     } presentation_format_t;
 
-    /**
+   /**
      *  @brief  Creates a new GattCharacteristic using the specified 16-bit
      *          UUID, value length, and properties
      *
@@ -306,38 +306,55 @@ public:
      *  @param[in]  uuid
      *              The UUID to use for this characteristic
      *  @param[in]  valuePtr
-     *              The memory holding the initial value.
+     *              The memory holding the initial value. The value is copied
+     *              into the stack when the enclosing service is added; and
+     *              thereafter maintained internally by the stack.
      *  @param[in]  initialLen
      *              The min length in bytes of this characteristic's value
      *  @param[in]  maxLen
      *              The max length in bytes of this characteristic's value
      *  @param[in]  props
      *              The 8-bit bit field containing the characteristic's properties
+     *  @param[in]  descriptors
+     *              A pointer to an array of descriptors to be included within this characteristic
+     *  @param[in]  numDescriptors
+     *              The number of descriptors
      *
-     *  @section EXAMPLE
-     *
-     *  @code
-     *
-     *  // UUID = 0x2A19, Min length 2, Max len = 2, Properties = write
-     *  GattCharacteristic c = GattCharacteristic( 0x2A19, 2, 2, BLE_GATT_CHAR_PROPERTIES_WRITE );
-     *
-     *  @endcode
+     * @NOTE: If valuePtr == NULL, initialLength == 0, and properties == READ
+     *        for the value attribute of a characteristic, then that particular
+     *        characteristic may be considered optional and dropped while
+     *        instantiating the service with the underlying BLE stack.
      */
     /**************************************************************************/
     GattCharacteristic(const UUID &uuid, uint8_t *valuePtr = NULL, uint16_t initialLen = 0, uint16_t maxLen = 0,
-                       uint8_t props = BLE_GATT_CHAR_PROPERTIES_NONE) :
-        GattAttribute(uuid, valuePtr, initialLen, maxLen), _properties(props) {
-        /* empty */
+                       uint8_t props = BLE_GATT_CHAR_PROPERTIES_NONE,
+                       GattAttribute *descriptors[] = NULL, unsigned numDescriptors = 0) :
+        _valueAttribute(uuid, valuePtr, initialLen, maxLen), _properties(props), _descriptors(descriptors), _descriptorCount(numDescriptors) {
     }
 
 public:
+    GattAttribute& getValueAttribute() {
+        return _valueAttribute;
+    }
     uint8_t getProperties(void) const {
         return _properties;
     }
+    uint8_t getDescriptorCount(void) const {
+        return _descriptorCount;
+    }
+    GattAttribute *getDescriptor(uint8_t index) {
+        if (index >= _descriptorCount) {
+            return NULL;
+        }
 
+        return _descriptors[index];
+    }
 
 private:
-    uint8_t   _properties;
+    GattAttribute     _valueAttribute;
+    uint8_t           _properties;
+    GattAttribute **  _descriptors;
+    uint8_t           _descriptorCount;
 };
 
 #endif // ifndef __GATT_CHARACTERISTIC_H__
