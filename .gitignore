@@ -19,6 +19,9 @@
 *.exe
 *.out
 *.app
+*.bin
+*.hex
+*.elf
 
 # hg
 *.hg
